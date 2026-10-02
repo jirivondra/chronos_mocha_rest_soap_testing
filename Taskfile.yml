@@ -10,8 +10,10 @@ tasks:
     # --- Build ---
     build:
         aliases: [b]
-        desc: Compile TypeScript
-        cmd: npx tsc
+        desc: Compile TypeScript (removes stale output in dist/ first)
+        cmds:
+            - rm -rf dist
+            - npx tsc
 
     # --- Tests ---
     test:
