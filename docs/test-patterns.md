@@ -23,6 +23,14 @@ Tests are composed from five shared layers plus the test files themselves:
 
 To read a value from the response body, cast `response.json` to the appropriate type.
 
+For content the fluent API doesn't cover — e.g. "every returned item matches a filter", "two responses differ" — assert on that value with Node's built-in `assert/strict`, chained after `expectStatus`/`expectJsonSchema` rather than instead of them:
+
+```ts
+const response = await get(todoUrls.todos.withQuery({ completed: true }));
+const todos = response.expectStatus(HTTP_STATUS.OK).json as Todo[];
+assert.ok(todos.every((todo) => todo.completed));
+```
+
 ## Test data
 
 All test input data lives in `testData/`, one file per protocol:
