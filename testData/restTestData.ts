@@ -24,6 +24,10 @@ export const restTestData = {
     deleteTodo: {
         create: { title: faker.lorem.words(3), completed: false },
     },
+    getTodos: {
+        createOpen: { title: faker.lorem.words(3), completed: false },
+        createCompleted: { title: faker.lorem.words(3), completed: true },
+    },
     smoke: {
         create: { title: faker.lorem.words(3), completed: false },
         update: { title: faker.lorem.words(3), completed: true },
