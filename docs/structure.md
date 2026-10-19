@@ -65,6 +65,8 @@ Standalone dev tooling, not part of the compiled test build (excluded in `tsconf
 
 - `generate-schema.ts` — extracts every entity's shape from the live API's own `/openapi.json` (OpenAPI 3.1, which is JSON-Schema-compatible) and writes each one as a `SchemaObject` to `schemas/generated/<name>.schema.ts`. Strips OpenAPI-only keywords (`example`, …) that ajv's strict mode would otherwise reject. Run via `npm run generate-schema` or `task generate-schema` — no arguments needed, it generates everything `/openapi.json` currently defines. Chronost_App's `/todos` GET endpoints now declare `response_model=Todo`, so `Todo` is one of the generated files alongside `TodoCreate`/`TodoUpdate` (the POST/PUT request bodies) — `schemas/todo.schema.ts` is a committed copy of the generated `Todo` schema, kept in sync by hand whenever the API's response model changes.
 
+Run `npm run check-schema-drift` or `task check-schema-drift` to catch that case: it regenerates `Todo` from the live API and fails (non-zero exit, with a diff) if it no longer matches the committed `schemas/todo.schema.ts`. This is run in Chronost*App's CI (`regression.yml`, `api-regression` job) against the live API started for the Mocha suite — it exists because `expectJsonSchema` alone won't catch every kind of drift: ajv without `additionalProperties: false` silently accepts fields the schema doesn't know about, so an API change that only \_adds* a field to `Todo` would pass every regression test without this check.
+
 ## types/
 
 TypeScript interfaces for domain entities used in tests and helpers.

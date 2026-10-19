@@ -16,6 +16,7 @@
         "allure:generate": "allure generate allure-results --clean -o allure-report",
         "allure:open": "allure open allure-report",
         "generate-schema": "ts-node scripts/generate-schema.ts",
+        "check-schema-drift": "ts-node scripts/generate-schema.ts && prettier --write --ignore-path /dev/null schemas/generated/todo.schema.ts && diff schemas/generated/todo.schema.ts schemas/todo.schema.ts",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",

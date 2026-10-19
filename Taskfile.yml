@@ -84,6 +84,14 @@ tasks:
         desc: Extract every component schema from /openapi.json into schemas/generated/
         cmd: npx ts-node scripts/generate-schema.ts
 
+    check-schema-drift:
+        aliases: [csd]
+        desc: Fail if schemas/todo.schema.ts no longer matches the live API's /openapi.json
+        cmds:
+            - npx ts-node scripts/generate-schema.ts
+            - npx prettier --write --ignore-path /dev/null schemas/generated/todo.schema.ts
+            - diff schemas/generated/todo.schema.ts schemas/todo.schema.ts
+
     # --- Code quality ---
     lint:
         aliases: [l]
