@@ -117,3 +117,8 @@ API_PASSWORD=your_password
 SOAP_URL=http://localhost:8001
 WIREMOCK_URL=http://localhost:8080
 ```
+
+## .github/workflows/
+
+- `schema-drift.yml` — runs `task check-schema-drift` on every PR/push to this repo, against a live API started from Chronost*App's `main`. This is the counterpart to Chronost_App's own `regression.yml` (`api-regression` job, which also runs that task): that one only ever checks Chronost_App's own PR branch against \_this* repo's `main`, so it never validates a PR opened here before it's merged. This workflow closes that gap — it checks out the PR branch that triggered it (default `actions/checkout@v4` behavior), so "no diff" here means the schema committed in _this_ PR matches the live API right now.
+- Needs repo secrets `API_USERNAME`, `API_PASSWORD` (already set) and `PACKAGES_TOKEN` (a PAT with `read:packages` scope for `@jirivondra/chronos-test-toolkit-api-ts` — same one Chronost_App's workflows use, not yet set here as of this writing).

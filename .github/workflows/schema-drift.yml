@@ -1,0 +1,68 @@
+# Validates THIS repo's own PR/push branch — unlike Chronost_App's regression.yml, which only
+# ever checks mocha's main (see docs/structure.md, "scripts/"). Checks out Chronost_App's main
+# to provide a live API, so this answers: "does what I'm about to merge here still match the
+# live API right now?"
+name: Schema Drift
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+
+jobs:
+    check-schema-drift:
+        name: Check schema is in sync with /openapi.json
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        env:
+            BASE_URL: http://localhost:8000
+            API_USERNAME: ${{ secrets.API_USERNAME }}
+            API_PASSWORD: ${{ secrets.API_PASSWORD }}
+
+        steps:
+            - name: Checkout tests
+              uses: actions/checkout@v4
+
+            - name: Checkout Chronost_App (for the live API)
+              uses: actions/checkout@v4
+              with:
+                  repository: jirivondra/Chronost_App
+                  path: chronost-app
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.11'
+
+            - name: Install API dependencies
+              run: pip install -r api/requirements.txt
+              working-directory: chronost-app
+
+            - name: Start API
+              run: uvicorn api.main:app --host 0.0.0.0 --port 8000 &
+              working-directory: chronost-app
+
+            - name: Wait for API
+              run: |
+                  timeout 30 bash -c \
+                    'until curl -sf -u "$API_USERNAME:$API_PASSWORD" http://localhost:8000/todos > /dev/null; do sleep 1; done'
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: lts/*
+                  registry-url: https://npm.pkg.github.com
+                  scope: '@jirivondra'
+
+            - name: Install Task
+              uses: arduino/setup-task@v2
+              with:
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Install dependencies
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+              run: task ci-install
+
+            - name: Check schema is in sync with /openapi.json
+              run: task check-schema-drift
