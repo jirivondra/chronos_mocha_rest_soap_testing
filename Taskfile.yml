@@ -7,6 +7,10 @@ tasks:
         desc: Install dependencies
         cmd: npm install
 
+    ci-install:
+        desc: Install dependencies reproducibly from package-lock.json (for CI)
+        cmd: npm ci
+
     # --- Build ---
     build:
         aliases: [b]
