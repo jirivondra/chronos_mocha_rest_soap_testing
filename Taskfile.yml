@@ -78,6 +78,12 @@ tasks:
         desc: Stop the WireMock container
         cmd: docker compose down
 
+    # --- Schema generation ---
+    generate-schema:
+        aliases: [gs]
+        desc: Extract every component schema from /openapi.json into schemas/generated/
+        cmd: npx ts-node scripts/generate-schema.ts
+
     # --- Code quality ---
     lint:
         aliases: [l]

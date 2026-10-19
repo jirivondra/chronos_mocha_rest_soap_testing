@@ -56,7 +56,14 @@ Test files import the named export and reference data by key — never define in
 
 Schema definitions used by `ApiResponse.expectJsonSchema()` to validate response body shape and types. Written as standard JSON Schema objects, validated at runtime with `ajv`.
 
-- `todo.schema.ts` — JSON Schema for the Todo entity: `properties` per field, a `required` array for mandatory fields, and `type: [..., 'null']` for nullable fields.
+- `todo.schema.ts` — JSON Schema for the Todo entity, generated from Chronost_App's own `/openapi.json` by `scripts/generate-schema.ts` (see `scripts/`) and committed as-is — not hand-edited. Regenerate with `npm run generate-schema` (or `task generate-schema`) and copy `schemas/generated/todo.schema.ts` over this file whenever the `Todo` response model changes on the API side.
+- `generated/` — output of `scripts/generate-schema.ts` (git- and lint-ignored, see `scripts/`), regenerated fresh on every run. `todo.schema.ts` above started as a copy of this directory's `todo.schema.ts`.
+
+## scripts/
+
+Standalone dev tooling, not part of the compiled test build (excluded in `tsconfig.json`) and not run by any `npm test*`/`task test*` command.
+
+- `generate-schema.ts` — extracts every entity's shape from the live API's own `/openapi.json` (OpenAPI 3.1, which is JSON-Schema-compatible) and writes each one as a `SchemaObject` to `schemas/generated/<name>.schema.ts`. Strips OpenAPI-only keywords (`example`, …) that ajv's strict mode would otherwise reject. Run via `npm run generate-schema` or `task generate-schema` — no arguments needed, it generates everything `/openapi.json` currently defines. Chronost_App's `/todos` GET endpoints now declare `response_model=Todo`, so `Todo` is one of the generated files alongside `TodoCreate`/`TodoUpdate` (the POST/PUT request bodies) — `schemas/todo.schema.ts` is a committed copy of the generated `Todo` schema, kept in sync by hand whenever the API's response model changes.
 
 ## types/
 

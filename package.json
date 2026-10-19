@@ -15,6 +15,7 @@
         "test:report": "npm run build && mocha --spec 'dist/test/**/*.spec.js' --reporter allure-mocha --reporter-option resultsDir=allure-results",
         "allure:generate": "allure generate allure-results --clean -o allure-report",
         "allure:open": "allure open allure-report",
+        "generate-schema": "ts-node scripts/generate-schema.ts",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
@@ -31,6 +32,7 @@
     },
     "homepage": "https://github.com/jirivondra/mocha_api_soap_testing#readme",
     "devDependencies": {
+        "@apidevtools/json-schema-ref-parser": "^16.0.5",
         "@faker-js/faker": "^10.5.0",
         "@types/mocha": "^10.0.10",
         "@types/node": "^25.9.3",
