@@ -67,6 +67,8 @@ Standalone dev tooling, not part of the compiled test build (excluded in `tsconf
 
 Run `npm run check-schema-drift` or `task check-schema-drift` to catch that case: it regenerates `Todo` from the live API and fails (non-zero exit, with a diff) if it no longer matches the committed `schemas/todo.schema.ts`. This is run in Chronost*App's CI (`regression.yml`, `api-regression` job) against the live API started for the Mocha suite — it exists because `expectJsonSchema` alone won't catch every kind of drift: ajv without `additionalProperties: false` silently accepts fields the schema doesn't know about, so an API change that only \_adds* a field to `Todo` would pass every regression test without this check.
 
+`check-schema-drift` only ever compares — it never writes `schemas/todo.schema.ts`, otherwise it would always pass by comparing the live API against itself. To actually update the committed file after an intentional API change, run `npm run update-schema` or `task update-schema` instead: it overwrites `schemas/todo.schema.ts` from the live API and immediately runs the regression suite against the new version, so you see before committing whether anything breaks. Local dev only — never run in CI.
+
 ## types/
 
 TypeScript interfaces for domain entities used in tests and helpers.
