@@ -1,6 +1,7 @@
 /**
- * Extracts every entity's shape from the API's own OpenAPI document and writes each one as a
- * SchemaObject ready for ApiResponse.expectJsonSchema(). Prototype — see docs/structure.md.
+ * Extracts the API's own OpenAPI document's description of each adopted entity (see
+ * ADOPTED_SCHEMAS) and writes it as a SchemaObject ready for ApiResponse.expectJsonSchema().
+ * schemas/generated/ mirrors schemas/ 1:1 — see docs/structure.md.
  *
  * Usage: npx ts-node scripts/generate-schema.ts [outDir]
  */
@@ -12,6 +13,11 @@ import RefParser from '@apidevtools/json-schema-ref-parser';
 dotenv.config();
 
 const DEFAULT_OUT_DIR = 'schemas/generated';
+
+// OpenAPI component schemas this project actually adopts as a committed schemas/*.schema.ts
+// file. Keeps schemas/generated/ mirroring schemas/ 1:1 instead of dumping every entity the
+// API happens to expose — add a name here only once something imports the committed file for it.
+const ADOPTED_SCHEMAS = ['Todo'];
 
 // OpenAPI-only keywords that aren't part of JSON Schema's validation vocabulary — ajv's strict
 // mode (as used by ApiResponse.expectJsonSchema) rejects unknown keywords like "example".
@@ -91,7 +97,7 @@ async function generateAllSchemas(outDir: string): Promise<string[]> {
     const document = await fetchOpenApiDocument(process.env.BASE_URL!, authHeader);
     const dereferenced = await dereferenceDocument(document);
     fs.mkdirSync(outDir, { recursive: true });
-    return Object.keys(dereferenced.components.schemas).map((name) => writeSchemaFile(dereferenced, name, outDir));
+    return ADOPTED_SCHEMAS.map((name) => writeSchemaFile(dereferenced, name, outDir));
 }
 
 function argOrDefault(value: string | undefined, fallback: string): string {
