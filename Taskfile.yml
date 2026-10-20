@@ -69,7 +69,7 @@ tasks:
         cmds:
             - task: wiremock-up
             - defer: { task: wiremock-down }
-            - cmd: npx mocha --spec 'dist/test/rest/mock/**/*.spec.js'
+            - npx mocha --spec 'dist/test/rest/mock/**/*.spec.js'
 
     # --- WireMock ---
     wiremock-up:
