@@ -7,6 +7,10 @@ tasks:
         desc: Install dependencies
         cmd: npm install
 
+    ci-install:
+        desc: Install dependencies reproducibly from package-lock.json (for CI)
+        cmd: npm ci
+
     # --- Build ---
     build:
         aliases: [b]
@@ -65,7 +69,7 @@ tasks:
         cmds:
             - task: wiremock-up
             - defer: { task: wiremock-down }
-            - cmd: npx mocha --spec 'dist/test/rest/mock/**/*.spec.js'
+            - npx mocha --spec 'dist/test/rest/mock/**/*.spec.js'
 
     # --- WireMock ---
     wiremock-up:
@@ -77,6 +81,29 @@ tasks:
     wiremock-down:
         desc: Stop the WireMock container
         cmd: docker compose down
+
+    # --- Schema generation ---
+    generate-schema:
+        aliases: [gs]
+        desc: Extract every component schema from /openapi.json into schemas/generated/
+        cmd: npx ts-node scripts/generate-schema.ts
+
+    check-schema-drift:
+        aliases: [csd]
+        desc: Fail if schemas/todo.schema.ts no longer matches the live API's /openapi.json
+        cmds:
+            - npx ts-node scripts/generate-schema.ts
+            - npx prettier --write --ignore-path /dev/null schemas/generated/todo.schema.ts
+            - diff schemas/generated/todo.schema.ts schemas/todo.schema.ts
+
+    update-schema:
+        aliases: [us]
+        desc: 'Local dev only (not run in CI): overwrite schemas/todo.schema.ts from the live API, then verify it with the regression suite'
+        cmds:
+            - npx ts-node scripts/generate-schema.ts
+            - npx prettier --write --ignore-path /dev/null schemas/generated/todo.schema.ts
+            - cp schemas/generated/todo.schema.ts schemas/todo.schema.ts
+            - task: test-regression
 
     # --- Code quality ---
     lint:

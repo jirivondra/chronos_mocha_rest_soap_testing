@@ -3,5 +3,5 @@
     "compilerOptions": {
         "outDir": "dist"
     },
-    "exclude": ["node_modules", "dist", "Chronost_App"]
+    "exclude": ["node_modules", "dist", "Chronost_App", "scripts"]
 }

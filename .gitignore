@@ -5,3 +5,4 @@ dist/
 .env
 allure-results/
 allure-report/
+schemas/generated/

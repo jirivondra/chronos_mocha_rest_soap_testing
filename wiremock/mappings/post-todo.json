@@ -6,7 +6,13 @@
     },
     "response": {
         "status": 201,
-        "jsonBody": { "id": 1, "title": "Mock todo title", "completed": false },
+        "jsonBody": {
+            "id": 1,
+            "title": "Mock todo title",
+            "description": null,
+            "completed": false,
+            "due_date": null
+        },
         "headers": { "Content-Type": "application/json" }
     }
 }

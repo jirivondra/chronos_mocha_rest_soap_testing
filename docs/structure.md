@@ -56,7 +56,18 @@ Test files import the named export and reference data by key — never define in
 
 Schema definitions used by `ApiResponse.expectJsonSchema()` to validate response body shape and types. Written as standard JSON Schema objects, validated at runtime with `ajv`.
 
-- `todo.schema.ts` — JSON Schema for the Todo entity: `properties` per field, a `required` array for mandatory fields, and `type: [..., 'null']` for nullable fields.
+- `todo.schema.ts` — JSON Schema for the Todo entity, generated from Chronost_App's own `/openapi.json` by `scripts/generate-schema.ts` (see `scripts/`) and committed as-is — not hand-edited. Regenerate with `npm run generate-schema` (or `task generate-schema`) and copy `schemas/generated/todo.schema.ts` over this file whenever the `Todo` response model changes on the API side.
+- `generated/` — output of `scripts/generate-schema.ts` (git- and lint-ignored, see `scripts/`), regenerated fresh on every run. `todo.schema.ts` above started as a copy of this directory's `todo.schema.ts`.
+
+## scripts/
+
+Standalone dev tooling, not part of the compiled test build (excluded in `tsconfig.json`) and not run by any `npm test*`/`task test*` command.
+
+- `generate-schema.ts` — extracts the live API's own `/openapi.json` (OpenAPI 3.1, which is JSON-Schema-compatible) description of each entity named in its `ADOPTED_SCHEMAS` constant and writes it as a `SchemaObject` to `schemas/generated/<name>.schema.ts`. Strips OpenAPI-only keywords (`example`, …) that ajv's strict mode would otherwise reject. Run via `npm run generate-schema` or `task generate-schema` — no arguments needed. `schemas/generated/` deliberately mirrors `schemas/` 1:1 (today: just `Todo`) rather than dumping every entity the API happens to expose (`TodoCreate`, `TodoUpdate`, the FastAPI validation-error shapes, …) — add a name to `ADOPTED_SCHEMAS` only once something actually imports a committed file for it. `schemas/todo.schema.ts` is a committed copy of the generated `Todo` schema, kept in sync by hand whenever the API's response model changes.
+
+Run `npm run check-schema-drift` or `task check-schema-drift` to catch that case: it regenerates `Todo` from the live API and fails (non-zero exit, with a diff) if it no longer matches the committed `schemas/todo.schema.ts`. This is run in Chronost*App's CI (`regression.yml`, `api-regression` job) against the live API started for the Mocha suite — it exists because `expectJsonSchema` alone won't catch every kind of drift: ajv without `additionalProperties: false` silently accepts fields the schema doesn't know about, so an API change that only \_adds* a field to `Todo` would pass every regression test without this check.
+
+`check-schema-drift` only ever compares — it never writes `schemas/todo.schema.ts`, otherwise it would always pass by comparing the live API against itself. To actually update the committed file after an intentional API change, run `npm run update-schema` or `task update-schema` instead: it overwrites `schemas/todo.schema.ts` from the live API and immediately runs the regression suite against the new version, so you see before committing whether anything breaks. Local dev only — never run in CI.
 
 ## types/
 
@@ -106,3 +117,8 @@ API_PASSWORD=your_password
 SOAP_URL=http://localhost:8001
 WIREMOCK_URL=http://localhost:8080
 ```
+
+## .github/workflows/
+
+- `schema-drift.yml` — runs `task check-schema-drift` on every PR/push to this repo, against a live API started from Chronost*App's `main`. This is the counterpart to Chronost_App's own `regression.yml` (`api-regression` job, which also runs that task): that one only ever checks Chronost_App's own PR branch against \_this* repo's `main`, so it never validates a PR opened here before it's merged. This workflow closes that gap — it checks out the PR branch that triggered it (default `actions/checkout@v4` behavior), so "no diff" here means the schema committed in _this_ PR matches the live API right now.
+- Needs repo secrets `API_USERNAME`, `API_PASSWORD` (already set) and `PACKAGES_TOKEN` (a PAT with `read:packages` scope for `@jirivondra/chronos-test-toolkit-api-ts` — same one Chronost_App's workflows use, not yet set here as of this writing).
